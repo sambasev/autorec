@@ -1,0 +1,4 @@
+LIBRARY AUTOREC
+EXPORTS
+VSTPluginMain 
+main=VSTPluginMain
