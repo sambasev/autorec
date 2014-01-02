@@ -1,6 +1,6 @@
 #include "audioeffectx.h"
 
-#define NUM_PARAMS 0
+#define NUM_PARAMS 2	//Update this whenever adding visible parameters
 
 class autorec : public AudioEffectX {
 public:
