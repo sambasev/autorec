@@ -26,4 +26,18 @@ public:
 	virtual bool getProductString(char* text);
 	virtual VstInt32 getVendorVersion();
 
+	//Local variables
+private:
+	char programName[kVstMaxProgNameLen + 1];
+	enum parameterName {
+		kRec,
+		kBufferLength
+	};
+	bool rec;
+	float bufferLen;
+	enum eBufferLen {
+		k5s,
+		k10s,
+		k30s
+	};
 };
