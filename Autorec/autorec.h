@@ -2,6 +2,8 @@
 
 #define NUM_PARAMS 2	//Update this whenever adding visible parameters
 
+void writeWAVData(const char* outFile, float* buf, size_t bufSize, int sampleRate, short channels);
+
 class autorec : public AudioEffectX {
 public:
 	autorec(audioMasterCallback audioMaster);

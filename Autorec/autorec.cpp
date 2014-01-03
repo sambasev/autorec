@@ -1,4 +1,5 @@
 #include "autorec.h"
+#include "writewav.h"
 
 AudioEffect* createEffectInstance(audioMasterCallback audioMaster) {
 	return new autorec(audioMaster);
@@ -13,10 +14,11 @@ AudioEffectX(audioMaster, 0, NUM_PARAMS) {
 //	canDoubleReplacing();	// supports double precision processing
 
 	//Buffer for recording
-	buffer = new float[bufsize+2];
+	buffer = new float[bufsize + 2];
 }
 
 autorec::~autorec() {
+	//__asm int 3;	//assembly interrupt (break when destructor is called)
 	if (buffer)
 		delete[] buffer;
 }
@@ -36,6 +38,7 @@ void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleF
 		if (!done && (playCursor < cursor)) {
 			playCursor = cursor;
 			done = true;	// Refresh cursor only once. Otherwise cursor refreshed everytime processReplacing() is called
+			//writeWAVData("C:\Users\samba_000\mySound.wav", buffer, (size_t)bufsize, 44100, 2);
 		}
 		while (--sampleFrames >= 0) 
 		{

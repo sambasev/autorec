@@ -50,5 +50,8 @@
     <ClInclude Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\audioeffectx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="writewav.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
