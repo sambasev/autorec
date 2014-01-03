@@ -32,16 +32,33 @@ void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleF
 	float* in2 = inputs[1];
 	float* out1 = outputs[0];
 	float* out2 = outputs[1];
-
-	while (--sampleFrames >= 0)
-	{
-		buffer[cursor++] = (*in1);
-		buffer[cursor++] = (*in2);
-		(*out1++) = (*in1++);
-		(*out2++) = (*in2++);
-		if (cursor >= bufsize)
+	if (rec) {
+		if (!done && (playCursor < cursor)) {
+			playCursor = cursor;
+			done = true;	// Refresh cursor only once. Otherwise cursor refreshed everytime processReplacing() is called
+		}
+		while (--sampleFrames >= 0) 
 		{
-			cursor = 0;		//Wrap around
+			if (playCursor >= bufsize)
+			{
+				playCursor = 0;		//Wrap around
+			}
+			(*out1++) = buffer[playCursor++];
+			(*out2++) = buffer[playCursor++];
+		}
+	}
+	else {
+		done = false;		//New material has been recorded. Refresh the play cursor to reflect this state
+		while (--sampleFrames >= 0)
+		{
+			buffer[cursor++] = (*in1);
+			buffer[cursor++] = (*in2);
+			(*out1++) = (*in1++);
+			(*out2++) = (*in2++);
+			if (cursor >= bufsize)
+			{
+				cursor = 0;		//Wrap around
+			}
 		}
 	}
 }

@@ -33,7 +33,7 @@ private:
 		kRec,
 		kBufferLength
 	};
-	bool rec;
+	bool rec, done=false;
 	float bufferLen;
 	enum eBufferLen {
 		k5s,
@@ -46,5 +46,5 @@ private:
 	int channels = 2;
 	float* buffer;
 	int bufsize = sampleRate* seconds * channels;
-	int cursor = 0;
+	int cursor = 0, playCursor = 0;
 };
