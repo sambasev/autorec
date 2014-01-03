@@ -8,7 +8,7 @@ public:
 	~autorec();
 
 	void processReplacing(float **inputs, float **outputs, VstInt32 sampleFrames);
-	virtual void processDoubleReplacing(double** inputs, double** outputs, VstInt32 sampleFrames);
+//	virtual void processDoubleReplacing(double** inputs, double** outputs, VstInt32 sampleFrames);
 	
 	// Program
 	virtual void setProgramName(char* name);
@@ -40,4 +40,11 @@ private:
 		k10s,
 		k30s
 	};
+	// Buffer
+	int sampleRate = 44100;
+	int seconds = 10;
+	int channels = 2;
+	float* buffer;
+	int bufsize = sampleRate* seconds * channels;
+	int cursor = 0;
 };

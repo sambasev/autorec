@@ -10,19 +10,23 @@ AudioEffectX(audioMaster, 0, NUM_PARAMS) {
 	setNumOutputs(2);		// stereo out
 	setUniqueID('arec');	// identify
 	canProcessReplacing();	// supports replacing output
-	canDoubleReplacing();	// supports double precision processing
+//	canDoubleReplacing();	// supports double precision processing
+
+	//Buffer for recording
+	buffer = new float[bufsize+2];
 }
 
 autorec::~autorec() {
-
+	if (buffer)
+		delete[] buffer;
 }
 
 void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleFrames) {
 	/*
 	Init	 - Create a global buffer to store X seconds of audio (# of samples = X * samplerate * channels)
-	Process  - None. output = input. Just copy input to buffer. sliding scale method (similar to filters). 
+	Process  - None. output = input. Just copy input to a circular buffer (similar to filters). 
 	When 'RETRIEVE' button is hit, copy/overwrite it into another buffer (store). Maybe prompt for storage.
-	When 'PLAY' is hit, play from buffer. Hitting RETRIEVE will overwrite buffer with last X seconds of audio.
+	When 'PLAY' is hit, play from buffer. Hitting RETRIEVE will overwrite play buffer with last X seconds of audio.
 	*/ 
 	float* in1 = inputs[0];
 	float* in2 = inputs[1];
@@ -31,21 +35,14 @@ void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleF
 
 	while (--sampleFrames >= 0)
 	{
+		buffer[cursor++] = (*in1);
+		buffer[cursor++] = (*in2);
 		(*out1++) = (*in1++);
 		(*out2++) = (*in2++);
-	}
-}
-
-void autorec::processDoubleReplacing(double** inputs, double** outputs, VstInt32 sampleFrames){
-	double* in1 = inputs[0];
-	double* in2 = inputs[1];
-	double* out1 = outputs[0];
-	double* out2 = outputs[1];
-
-	while (--sampleFrames >= 0)
-	{
-		(*out1++) = (*in1++);
-		(*out2++) = (*in2++);
+		if (cursor >= bufsize)
+		{
+			cursor = 0;		//Wrap around
+		}
 	}
 }
 
@@ -87,22 +84,36 @@ float autorec::getParameter(VstInt32 index){
 }
 
 void autorec::getParameterLabel(VstInt32 index, char* label){
-	vst_strncpy(label, "REC", kVstMaxParamStrLen);
+	switch (index) {
+		case kRec: vst_strncpy(label, "", kVstMaxParamStrLen); break;
+		case kBufferLength: vst_strncpy(label, "sec", kVstMaxParamStrLen); break;
+		default: vst_strncpy(label, "units", kVstMaxParamStrLen); break;
+	}
 }
 
 void autorec::getParameterDisplay(VstInt32 index, char* text){
 	switch (index){
-		case kRec:	dB2string(1.0, text, kVstMaxParamStrLen); break;	// Temp
-		case kBufferLength: 
-		default:	dB2string(bufferLen, text, kVstMaxParamStrLen); break;
+		case kRec: {
+			if (rec) 
+				vst_strncpy(text, "ON", kVstMaxParamStrLen);
+			else 
+				vst_strncpy(text, "OFF", kVstMaxParamStrLen);
+		}; break; 	// Temp
+		case kBufferLength: {
+			if(bufferLen <=0.5) 
+				vst_strncpy(text, "5", kVstMaxParamStrLen); 
+			else
+				vst_strncpy(text, "10", kVstMaxParamStrLen); 
+		}; break;
+		default: vst_strncpy(text, "Default", kVstMaxParamStrLen); break;
 	}
 }
 
 void autorec::getParameterName(VstInt32 index, char* text){
 	switch (index){
-		case kRec: 	vst_strncpy(text, "Rec", kVstMaxProgNameLen);
-		case kBufferLength: 	vst_strncpy(text, "Buffer:", kVstMaxProgNameLen);
-		default: 	vst_strncpy(text, "default", kVstMaxProgNameLen);
+		case kRec: 	vst_strncpy(text, "Rec", kVstMaxProgNameLen); break;
+		case kBufferLength: 	vst_strncpy(text, "Buffer:", kVstMaxProgNameLen); break;
+		default: 	vst_strncpy(text, "default", kVstMaxProgNameLen); break;
 	}
 }
 
