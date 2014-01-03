@@ -1,5 +1,4 @@
 #include "autorec.h"
-#include "writewav.h"
 
 AudioEffect* createEffectInstance(audioMasterCallback audioMaster) {
 	return new autorec(audioMaster);
@@ -11,17 +10,16 @@ AudioEffectX(audioMaster, 0, NUM_PARAMS) {
 	setNumOutputs(2);		// stereo out
 	setUniqueID('arec');	// identify
 	canProcessReplacing();	// supports replacing output
-//	canDoubleReplacing();	// supports double precision processing
 
 	//Buffer for recording
-	buffer = new float[bufsize + 2];
+	buffer.assign(bufsize, 0.0);	//Init bufsize samples with 0.0
 	bufferLen = k5s;
 }
 
 autorec::~autorec() {
 	//__asm int 3;	//assembly interrupt (break when destructor is called)
-	if (buffer)
-		delete[] buffer;
+	buffer.clear();	
+	buffer.resize(0);  //Necessary?
 }
 
 void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleFrames) {
@@ -35,11 +33,10 @@ void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleF
 	float* in2 = inputs[1];
 	float* out1 = outputs[0];
 	float* out2 = outputs[1];
-	if (rec) {
+	if (play) {
 		if (!done && (playCursor < cursor)) {
 			playCursor = cursor;
-			done = true;	// Refresh cursor only once. Otherwise cursor refreshed everytime processReplacing() is called
-			//writeWAVData("C:\Users\samba_000\mySound.wav", buffer, (size_t)bufsize, 44100, 2);
+			done = true;	// Refresh cursor only once else its refreshed whenever processReplacing() is called
 		}
 		while (--sampleFrames >= 0) 
 		{
@@ -77,15 +74,15 @@ void autorec::getProgramName(char* name){
 
 void autorec::setParameter(VstInt32 index, float value){
 	switch (index) {
-		case kRec: 
+		case kPlay: 
 		{
-			if (value <= 0.5) 
-			{
-				rec = true;
-			//writeWAVData("mySound.wav", buffer, bufsize, sampleRate, 1);
-			}
-		else
-				rec = false;
+			if (value <= 0.5)
+			 {
+				play = false;
+				 //writeWAVData("mySound.wav", buffer, bufsize, sampleRate, 1);
+			 }
+			else
+			 play = true;
 		}; break;
 		case kBufferLength:
 		{
@@ -93,16 +90,16 @@ void autorec::setParameter(VstInt32 index, float value){
 				bufferLen = k5s;
 			else 
 				bufferLen = k10s; 
-		}; break;
+		}; resizeBuffer(); break;
 			
 	}
 }
 
 float autorec::getParameter(VstInt32 index){
 	switch (index) {
-		case kRec: 	
+		case kPlay: 	
 		{
-			if (rec)
+			if (play)
 				return 1;
 			else
 				return 0;
@@ -121,7 +118,7 @@ float autorec::getParameter(VstInt32 index){
 
 void autorec::getParameterLabel(VstInt32 index, char* label){
 	switch (index) {
-		case kRec: vst_strncpy(label, "", kVstMaxParamStrLen); break;
+		case kPlay: vst_strncpy(label, "", kVstMaxParamStrLen); break;
 		case kBufferLength: vst_strncpy(label, "sec", kVstMaxParamStrLen); break;
 		default: vst_strncpy(label, "units", kVstMaxParamStrLen); break;
 	}
@@ -129,8 +126,8 @@ void autorec::getParameterLabel(VstInt32 index, char* label){
 
 void autorec::getParameterDisplay(VstInt32 index, char* text){
 	switch (index){
-		case kRec: {
-			if (rec) 
+		case kPlay: {
+			if (play) 
 				vst_strncpy(text, "ON", kVstMaxParamStrLen);
 			else 
 				vst_strncpy(text, "OFF", kVstMaxParamStrLen);
@@ -147,7 +144,7 @@ void autorec::getParameterDisplay(VstInt32 index, char* text){
 
 void autorec::getParameterName(VstInt32 index, char* text){
 	switch (index){
-		case kRec: 	vst_strncpy(text, "Rec", kVstMaxProgNameLen); break;
+		case kPlay: 	vst_strncpy(text, "Play", kVstMaxProgNameLen); break;
 		case kBufferLength: 	vst_strncpy(text, "Buffer:", kVstMaxProgNameLen); break;
 		default: 	vst_strncpy(text, "default", kVstMaxProgNameLen); break;
 	}
@@ -170,4 +167,33 @@ bool autorec::getProductString(char* text){
 
 VstInt32 autorec::getVendorVersion(){
 	return 1;
+}
+
+//Reads current buffer setting (updated by host/user)
+//Updates buffer, and bufsize
+//TODO:Need to correctly copy to playBuffer
+void autorec::resizeBuffer(){
+	int oldBufsize = bufsize;
+	int newBufsize;
+	switch (bufferLen)
+	{
+		case k5s: seconds = 5; break;
+		case k10s: seconds = 10; break;
+	}
+	newBufsize = sampleRate * seconds * channels;
+	if (oldBufsize == newBufsize) return;
+	bufsize = newBufsize;
+	if (newBufsize > oldBufsize)			//Expand
+	{
+		buffer.resize(newBufsize, 0.0);	
+		return;
+	}
+	if (newBufsize < oldBufsize)			//Shrink
+	{
+		buffer.resize(newBufsize, 0.0);
+		if (playCursor > oldBufsize)
+			playCursor -= oldBufsize;
+		if (cursor > oldBufsize)
+			cursor -= oldBufsize;
+	}
 }

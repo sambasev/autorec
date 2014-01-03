@@ -1,6 +1,10 @@
 #include "audioeffectx.h"
+#include <iostream>
+#include <vector>
+#include "writewav.h"
 
 #define NUM_PARAMS 2	//Update this whenever adding visible parameters
+using namespace std;
 
 void writeWAVData(const char* outFile, float* buf, size_t bufSize, int sampleRate, short channels);
 
@@ -30,12 +34,13 @@ public:
 
 	//Local variables
 private:
+	void resizeBuffer();
 	char programName[kVstMaxProgNameLen + 1];
 	enum parameterName {
-		kRec,
+		kPlay,
 		kBufferLength
 	};
-	bool rec, done=false;
+	bool play=false, done=false;
 	//float bufferLen;
 	enum eBufferLen {
 		k5s,
@@ -43,9 +48,10 @@ private:
 	} bufferLen;
 	// Buffer
 	int sampleRate = 44100;
-	int seconds = 10;
+	int seconds = 5;
 	int channels = 2;
-	float* buffer;
+	//float* buffer;
+	vector<float> buffer;
 	int bufsize = sampleRate* seconds * channels;
 	int cursor = 0, playCursor = 0;
 };
