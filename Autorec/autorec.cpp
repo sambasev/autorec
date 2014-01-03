@@ -15,6 +15,7 @@ AudioEffectX(audioMaster, 0, NUM_PARAMS) {
 
 	//Buffer for recording
 	buffer = new float[bufsize + 2];
+	bufferLen = k5s;
 }
 
 autorec::~autorec() {
@@ -76,28 +77,43 @@ void autorec::getProgramName(char* name){
 
 void autorec::setParameter(VstInt32 index, float value){
 	switch (index) {
-		case kRec: {
-		 if (value)
-			 rec = true;
-		 else
-			 rec = false;
+		case kRec: 
+		{
+			if (value <= 0.5) 
+			{
+				rec = true;
+			//writeWAVData("mySound.wav", buffer, bufsize, sampleRate, 1);
+			}
+		else
+				rec = false;
 		}; break;
-		case kBufferLength: 
-			bufferLen = value; break;
+		case kBufferLength:
+		{
+			if (value <= 0.5) 
+				bufferLen = k5s;
+			else 
+				bufferLen = k10s; 
+		}; break;
+			
 	}
 }
 
 float autorec::getParameter(VstInt32 index){
 	switch (index) {
-		case kRec: 	{
-			if (rec) 
+		case kRec: 	
+		{
+			if (rec)
 				return 1;
-			else 
+			else
 				return 0;
 		}; break;
-		case kBufferLength: 
-			return bufferLen; //Temporary. param to float conversion?
-			break;
+		case kBufferLength:
+		{
+			if (bufferLen)
+				return 1; //Temporary. param to float conversion?
+			else
+				return 0;
+		};  break;
 		default: 
 			return 0;
 	}
@@ -120,7 +136,7 @@ void autorec::getParameterDisplay(VstInt32 index, char* text){
 				vst_strncpy(text, "OFF", kVstMaxParamStrLen);
 		}; break; 	// Temp
 		case kBufferLength: {
-			if(bufferLen <=0.5) 
+			if(bufferLen == k5s) 
 				vst_strncpy(text, "5", kVstMaxParamStrLen); 
 			else
 				vst_strncpy(text, "10", kVstMaxParamStrLen); 

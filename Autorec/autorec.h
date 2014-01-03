@@ -36,12 +36,11 @@ private:
 		kBufferLength
 	};
 	bool rec, done=false;
-	float bufferLen;
+	//float bufferLen;
 	enum eBufferLen {
 		k5s,
-		k10s,
-		k30s
-	};
+		k10s
+	} bufferLen;
 	// Buffer
 	int sampleRate = 44100;
 	int seconds = 10;

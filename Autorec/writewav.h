@@ -38,5 +38,5 @@ void writeWAVData(const char* outFile, float* buf, size_t bufSize,
 	stream.write("data", 4);
 	stream.write((const char*)&bufSize, 4);
 	stream.write((const char*)buf, bufSize);
-	stream.close();
+	//stream.close();
 }
