@@ -13,7 +13,11 @@ AudioEffectX(audioMaster, 0, NUM_PARAMS) {
 
 	//Buffer for recording
 	buffer.assign(bufsize, 0.0);	//Init bufsize samples with 0.0
-	bufferLen = k5s;
+	bufferLen = k5s;		// Default buffer is 5 seconds
+	//playCursor = cursor = (MAX_REC_TIME - bufferLen) * sampleRate * channels;
+	if (cursor < 0) {
+		//error - fix MAX_REC_TIME to be greater than bufferLen
+	}
 }
 
 autorec::~autorec() {
@@ -85,7 +89,15 @@ void autorec::setParameter(VstInt32 index, float value){
 			{
 				play = true;
 				if (!saved) {
-					writeWAVData("C:\\Users\\samba_000\\Desktop\\myFile.wav", buffer.data(), buffer.size()*sizeof(float), 44100, 2);
+					vector<float> temp;
+					temp.assign(buffer.size()/2, 0.0);
+					int x = 0;
+					for (int i = 0; i < buffer.size()-2; i += 2)	//grab every other sample (mono)
+					{
+						temp[x++] = buffer[i];
+					}
+					writeWAVData("C:\\Users\\samba_000\\Desktop\\myFile.wav", buffer.data(), buffer.size()*sizeof(float), 44100, 1);
+					//writeWAVData("C:\\Users\\samba_000\\Desktop\\myFile.wav", temp.data(), temp.size()*sizeof(float), 44100, 1); //mono
 					saved = true;
 				}
 
@@ -97,8 +109,7 @@ void autorec::setParameter(VstInt32 index, float value){
 				bufferLen = k5s;
 			else 
 				bufferLen = k10s; 
-		}; resizeBuffer(); break;
-			
+		}; resizeBuffer(); break;	
 	}
 }
 
@@ -125,9 +136,9 @@ float autorec::getParameter(VstInt32 index){
 
 void autorec::getParameterLabel(VstInt32 index, char* label){
 	switch (index) {
-		case kPlay: vst_strncpy(label, "", kVstMaxParamStrLen); break;
+		case kPlay:			vst_strncpy(label, "", kVstMaxParamStrLen); break;
 		case kBufferLength: vst_strncpy(label, "sec", kVstMaxParamStrLen); break;
-		default: vst_strncpy(label, "units", kVstMaxParamStrLen); break;
+		default:			vst_strncpy(label, "units", kVstMaxParamStrLen); break;
 	}
 }
 
@@ -140,20 +151,20 @@ void autorec::getParameterDisplay(VstInt32 index, char* text){
 				vst_strncpy(text, "OFF", kVstMaxParamStrLen);
 		}; break; 	// Temp
 		case kBufferLength: {
-			if(bufferLen == k5s) 
+			if (bufferLen == k5s) 
 				vst_strncpy(text, "5", kVstMaxParamStrLen); 
 			else
 				vst_strncpy(text, "10", kVstMaxParamStrLen); 
 		}; break;
-		default: vst_strncpy(text, "Default", kVstMaxParamStrLen); break;
+		default:vst_strncpy(text, "Default", kVstMaxParamStrLen); break;
 	}
 }
 
 void autorec::getParameterName(VstInt32 index, char* text){
 	switch (index){
-		case kPlay: 	vst_strncpy(text, "Play", kVstMaxProgNameLen); break;
+		case kPlay: 			vst_strncpy(text, "Play", kVstMaxProgNameLen); break;
 		case kBufferLength: 	vst_strncpy(text, "Buffer:", kVstMaxProgNameLen); break;
-		default: 	vst_strncpy(text, "default", kVstMaxProgNameLen); break;
+		default: 				vst_strncpy(text, "default", kVstMaxProgNameLen); break;
 	}
 }
 
@@ -179,6 +190,7 @@ VstInt32 autorec::getVendorVersion(){
 //Reads current buffer setting (updated by host/user)
 //Updates buffer, and bufsize
 //TODO:Make it modulr - give old size and new size?
+
 void autorec::resizeBuffer(){
 	int oldBufsize = bufsize;
 	int newBufsize;
@@ -204,3 +216,9 @@ void autorec::resizeBuffer(){
 			cursor -= oldBufsize;
 	}
 }
+
+
+//Copies oldBuffer to newBuffer, modifies cursor and newBuffer.
+//void autorec::resizeBuffer(oldBuffer, newBuffer, cursor)
+
+//Buffer(largest) and manipulating cursor alone

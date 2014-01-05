@@ -4,6 +4,10 @@
 #include "writewav.h"
 
 #define NUM_PARAMS 2	//Update this whenever adding visible parameters
+#define MAX_REC_TIME 10 //Max record time the plugin supports (in seconds)
+#define CHANNELS 2		//stereo plugin
+#define SAMPLERATE 44100	//For now its fixed. Should get it from host
+
 using namespace std;
 
 void writeWAVData(const char* outFile, float* buf, size_t bufSize, int sampleRate, short channels);
@@ -43,13 +47,13 @@ private:
 	bool play = false, done = false, saved = false;
 	//float bufferLen;
 	enum eBufferLen {
-		k5s,
-		k10s
+		k5s = 5,
+		k10s = 10
 	} bufferLen;
 	// Buffer
 	int sampleRate = 44100;
-	int seconds = 5;
-	int channels = 2;
+	int seconds = MAX_REC_TIME;
+	int channels = CHANNELS;
 	//float* buffer;
 	vector<float> buffer;
 	int bufsize = sampleRate* seconds * channels;
