@@ -49,7 +49,7 @@ void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleF
 		}
 	}
 	else {
-		done = false;		//New material has been recorded. Refresh the play cursor to reflect this state
+		done = false; saved = false;		//New material has been recorded. Refresh the play cursor to reflect this state
 		while (--sampleFrames >= 0)
 		{
 			buffer[cursor++] = (*in1);
@@ -73,16 +73,23 @@ void autorec::getProgramName(char* name){
 }
 
 void autorec::setParameter(VstInt32 index, float value){
+	
 	switch (index) {
 		case kPlay: 
 		{
 			if (value <= 0.5)
 			 {
 				play = false;
-				 //writeWAVData("mySound.wav", buffer, bufsize, sampleRate, 1);
 			 }
 			else
-			 play = true;
+			{
+				play = true;
+				if (!saved) {
+					writeWAVData("C:\\Users\\samba_000\\Desktop\\myFile.wav", buffer.data(), buffer.size()*sizeof(float), 44100, 2);
+					saved = true;
+				}
+
+			}
 		}; break;
 		case kBufferLength:
 		{
@@ -171,7 +178,7 @@ VstInt32 autorec::getVendorVersion(){
 
 //Reads current buffer setting (updated by host/user)
 //Updates buffer, and bufsize
-//TODO:Need to correctly copy to playBuffer
+//TODO:Make it modulr - give old size and new size?
 void autorec::resizeBuffer(){
 	int oldBufsize = bufsize;
 	int newBufsize;

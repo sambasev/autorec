@@ -40,7 +40,7 @@ private:
 		kPlay,
 		kBufferLength
 	};
-	bool play=false, done=false;
+	bool play = false, done = false, saved = false;
 	//float bufferLen;
 	enum eBufferLen {
 		k5s,
