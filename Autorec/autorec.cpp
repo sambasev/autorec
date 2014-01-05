@@ -96,7 +96,7 @@ void autorec::setParameter(VstInt32 index, float value){
 					{
 						temp[x++] = buffer[i];
 					}
-					writeWAVData("C:\\Users\\samba_000\\Desktop\\myFile.wav", buffer.data(), buffer.size()*sizeof(float), 44100, 1);
+					writeWAVData("C:\\Users\\samba_000\\Desktop\\myFile.wav", buffer.data(), buffer.size()*sizeof(float), 44100, 2);
 					//writeWAVData("C:\\Users\\samba_000\\Desktop\\myFile.wav", temp.data(), temp.size()*sizeof(float), 44100, 1); //mono
 					saved = true;
 				}

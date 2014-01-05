@@ -33,7 +33,7 @@ void writeWAVData(const char* outFile, float* buf, size_t bufSize,
 	//Format chunk
 	stream.write("fmt ", 4);
 	write<int>(stream, 16);									   // fmt chunk size
-	write<short>(stream, 1);                                   // Format (1 = PCM)
+	write<short>(stream, 3);                                   // Format (1 = PCM)
 	write<short>(stream, channels);                            // Channels
 	write<int>(stream, sampleRate);                            // Sample Rate
 	write<int>(stream, sampleRate * channels * sizeof(float)); // Byterate
