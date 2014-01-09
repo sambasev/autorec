@@ -101,7 +101,7 @@ void autorec::setParameter(VstInt32 index, float value){
 					saved = true;
 				}
 			 }
-			else if (value == 1)
+			else if (value == 0)
 			{
 				play = false;		
 			}
