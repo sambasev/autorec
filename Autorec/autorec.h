@@ -4,13 +4,16 @@
 #include "writewav.h"
 
 #define NUM_PARAMS 2	//Update this whenever adding visible parameters
-#define MAX_REC_TIME 10 //Max record time the plugin supports (in seconds)
+#define MAX_REC_TIME 1 //Max record time the plugin supports (in seconds)
 #define CHANNELS 2		//stereo plugin
 #define SAMPLERATE 44100	//For now its fixed. Should get it from host
+#define MAX_BUFFER_SIZE MAX_REC_TIME*SAMPLERATE //Each sample goes into the buffer
 
 using namespace std;
 
 void writeWAVData(const char* outFile, float* buf, size_t bufSize, int sampleRate, short channels);
+
+class audiobuffer;
 
 class autorec : public AudioEffectX {
 public:
@@ -38,7 +41,7 @@ public:
 
 	//Local variables
 private:
-	void resizeBuffer();
+	//void resizeBuffer();
 	char programName[kVstMaxProgNameLen + 1];
 	enum parameterName {
 		kPlay,
@@ -50,12 +53,44 @@ private:
 		k5s = 5,
 		k10s = 10
 	} bufferLen;
+	void resizeBuffer(vector<float> buf, int *cursor, eBufferLen newlen);
+	int sec2samples(int seconds);
 	// Buffer
 	int sampleRate = 44100;
 	int seconds = MAX_REC_TIME;
 	int channels = CHANNELS;
 	//float* buffer;
 	vector<float> buffer;
-	int bufsize = sampleRate* seconds * channels;
+	int bufsize = sampleRate* seconds;
 	int cursor = 0, playCursor = 0;
+	audiobuffer *buf;
 };
+
+//Each audiosample can have n channels (typically n=2)
+struct audiosample_t {
+	vector<float> channel;
+} audiosample;
+
+//------------------------------------------------------------------------
+// Takes in size (total numFrames), creates an audio buffer with methods:
+// insertSample(void *sample)
+// getSample(index), getNextSample() - loop
+// resize()
+// cannot automatically resize - application has to call resize, otherwise index out of bounds
+// freeze() - will resize using only play cursor, not the actual buffer. 
+class audiobuffer
+{
+	//friend class autorec;	//To allow autorec to access private methods
+public:
+	audiobuffer(unsigned int size, unsigned int channels);
+	~audiobuffer() {}
+	void insertSample(audiosample_t *fsample);
+	audiosample_t getSample(unsigned int index);
+	audiosample_t getNextSample();
+	int resize(unsigned int newsize);
+private:
+	unsigned int cursor=0;
+	unsigned int buffersize=44100;
+	vector<audiosample_t> sample;
+};
+

@@ -12,18 +12,20 @@ AudioEffectX(audioMaster, 0, NUM_PARAMS) {
 	canProcessReplacing();	// supports replacing output
 
 	//Buffer for recording
-	buffer.assign(bufsize, 0.0);	//Init bufsize samples with 0.0
-	bufferLen = k5s;		// Default buffer is 5 seconds
+	//buffer.assign(bufsize, 0.0);	//Init bufsize samples with 0.0
+	//bufferLen = k5s;		// Default buffer is 5 seconds
 	//playCursor = cursor = (MAX_REC_TIME - bufferLen) * sampleRate * channels;
-	if (cursor < 0) {
-		//error - fix MAX_REC_TIME to be greater than bufferLen
-	}
+
+	buf = new audiobuffer(MAX_REC_TIME * sampleRate, channels);
 }
 
 autorec::~autorec() {
 	//__asm int 3;	//assembly interrupt (break when destructor is called)
-	buffer.clear();	
-	buffer.resize(0);  //Necessary?
+	//buffer.clear();	
+	//buffer.resize(0);  //Necessary?
+	if (buf) {
+		delete buf;
+	}
 }
 
 void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleFrames) {
@@ -48,22 +50,32 @@ void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleF
 			{
 				playCursor = 0;		//Wrap around
 			}
-			(*out1++) = buffer[playCursor++];
-			(*out2++) = buffer[playCursor++];
+			//(*out1++) = buffer[playCursor++];
+			//(*out2++) = buffer[playCursor++];
+			playCursor++;
+			audiosample_t bufsample = buf->getNextSample();
+			(*out1++) = bufsample.channel[0];
+			(*out2++) = bufsample.channel[1];
+			//(*out1++) = (*in1++);
+			//(*out2++) = (*in2++);
 		}
 	}
 	else {
 		done = false; saved = false;		//New material has been recorded. Refresh the play cursor to reflect this state
 		while (--sampleFrames >= 0)
 		{
-			buffer[cursor++] = (*in1);
-			buffer[cursor++] = (*in2);
+			//buffer[cursor++] = (*in1);
+			//buffer[cursor++] = (*in2);
+			cursor++;
+			audiosample_t fsample;
+			float temp = 0.0;
+			fsample.channel.push_back(temp);
+			fsample.channel.push_back(temp);
+			fsample.channel[0] = *in1;
+			fsample.channel[1] = *in2;
+			buf->insertSample(&fsample);
 			(*out1++) = (*in1++);
 			(*out2++) = (*in2++);
-			if (cursor >= bufsize)
-			{
-				cursor = 0;		//Wrap around
-			}
 		}
 	}
 }
@@ -81,35 +93,26 @@ void autorec::setParameter(VstInt32 index, float value){
 	switch (index) {
 		case kPlay: 
 		{
-			if (value <= 0.5)
+			if (value == 1)
 			 {
-				play = false;
-			 }
-			else
-			{
 				play = true;
 				if (!saved) {
-					vector<float> temp;
-					temp.assign(buffer.size()/2, 0.0);
-					int x = 0;
-					for (int i = 0; i < buffer.size()-2; i += 2)	//grab every other sample (mono)
-					{
-						temp[x++] = buffer[i];
-					}
-					writeWAVData("C:\\Users\\samba_000\\Desktop\\myFile.wav", buffer.data(), buffer.size()*sizeof(float), 44100, 2);
-					//writeWAVData("C:\\Users\\samba_000\\Desktop\\myFile.wav", temp.data(), temp.size()*sizeof(float), 44100, 1); //mono
+					//writeWAVData("C:\\Users\\samba_000\\Desktop\\myFile.wav", buffer.data(), buffer.size()*sizeof(float), 44100, 2);
 					saved = true;
 				}
-
+			 }
+			else if (value == 1)
+			{
+				play = false;		
 			}
 		}; break;
 		case kBufferLength:
 		{
-			if (value <= 0.5) 
+			if (value == 0) 
 				bufferLen = k5s;
-			else 
+			else if (value == 1)
 				bufferLen = k10s; 
-		}; resizeBuffer(); break;	
+		}; break;	
 	}
 }
 
@@ -191,34 +194,133 @@ VstInt32 autorec::getVendorVersion(){
 //Updates buffer, and bufsize
 //TODO:Make it modulr - give old size and new size?
 
-void autorec::resizeBuffer(){
-	int oldBufsize = bufsize;
-	int newBufsize;
-	switch (bufferLen)
-	{
-		case k5s: seconds = 5; break;
-		case k10s: seconds = 10; break;
-	}
-	newBufsize = sampleRate * seconds * channels;
-	if (oldBufsize == newBufsize) return;
-	bufsize = newBufsize;
-	if (newBufsize > oldBufsize)			//Expand
-	{
-		buffer.resize(newBufsize, 0.0);	
-		return;
-	}
-	if (newBufsize < oldBufsize)			//Shrink
-	{
-		buffer.resize(newBufsize, 0.0);
-		if (playCursor > oldBufsize)
-			playCursor -= oldBufsize;
-		if (cursor > oldBufsize)
-			cursor -= oldBufsize;
-	}
-}
+//void autorec::resizeBuffer(){
+//	int oldBufsize = bufsize;
+//	int newBufsize;
+//	switch (bufferLen)
+//	{
+//		case k5s: seconds = 5; break;
+//		case k10s: seconds = 10; break;
+//	}
+//	newBufsize = sampleRate * seconds * channels;
+//	if (oldBufsize == newBufsize) return;
+//	bufsize = newBufsize;
+//	if (newBufsize > oldBufsize)			//Expand
+//	{
+//		buffer.resize(newBufsize, 0.0);	
+//		return;
+//	}
+//	if (newBufsize < oldBufsize)			//Shrink
+//	{
+//		buffer.resize(newBufsize, 0.0);
+//		if (playCursor > oldBufsize)
+//			playCursor -= oldBufsize;
+//		if (cursor > oldBufsize)
+//			cursor -= oldBufsize;
+//	}
+//}
 
 
 //Copies oldBuffer to newBuffer, modifies cursor and newBuffer.
 //void autorec::resizeBuffer(oldBuffer, newBuffer, cursor)
 
 //Buffer(largest) and manipulating cursor alone
+//enum type should take care of non-enum values during compilation
+
+// Test cases (c - cursor):
+//Grow
+//  old - c 1 2 3 4 5    // new - 1 2 3 4 5 c 0 0 0 0   
+//  old - 1 2 3 4 c 5    // new - 5 1 2 3 4 c 0 0 0 0
+//Shrink:
+//  old - 1 2 3 4 5 6 7 c 8 // new - 4 5 6 7 c
+//  old - 1 c 2 3 4 5 6 7 8 // new - 6 7 8 1 c
+
+void autorec::resizeBuffer(vector<float> buf, int *cursor, eBufferLen newlen){
+	int x, c, newcursor = 0;
+	x = c = *cursor;
+	if (bufferLen == newlen) {
+		return;
+	}
+	//Grow
+	if (newlen > bufferLen) {
+		//copy cursor to end of old buffer to start of new buffer
+		for (; x < buf.size(); x++) {
+			buf[newcursor++] = buf[x];
+		}
+		//append start to cursor to new buffer
+		for (int y = sec2samples(k10s); y < c; y++) {
+			buf[newcursor++] = buf[y];
+		}
+		//clear new buffer end and update cursor
+		for (int y = newcursor; y < buf.size(); y++) {
+			buf[y] = 0;
+		}
+		*cursor = newcursor;
+	}
+	//Shrink
+	if (newlen < bufferLen) {
+		//copy end-remaining to start of new buffer
+		//append start to cursor to end of new buffer
+	}
+}
+
+int autorec::sec2samples(int seconds) {
+	return seconds*sampleRate*channels;
+}
+
+audiobuffer::audiobuffer(unsigned int size, unsigned int channels) {
+	cursor = 0; buffersize = MAX_BUFFER_SIZE;
+	if (size && channels && (size <= MAX_BUFFER_SIZE) && (channels <= CHANNELS)) {
+		audiosample_t temp;
+		float ftemp = 0.0;
+		temp.channel.push_back(ftemp);
+		temp.channel.push_back(ftemp);
+		sample.assign(size, temp);
+		buffersize = size;
+	}
+};
+
+//insertSample(float **fsample) - inserts sample and advances cursor. 
+//Wraps around cursor if necessary.
+void audiobuffer::insertSample(audiosample_t *fsample) {
+	int x = sample.size();
+	if (fsample) {
+		cursor = cursor % buffersize;			//Loop around
+		sample[cursor].channel[0] = fsample->channel[0];
+		sample[cursor].channel[1] = fsample->channel[1];
+		cursor++;
+	}
+}
+
+audiosample_t audiobuffer::getSample(unsigned int index) {
+	if (index < buffersize) {
+		return sample[index];
+	}
+	return sample[0];
+}
+
+audiosample_t audiobuffer::getNextSample() {
+	cursor = ++cursor % buffersize;
+	return sample[cursor];
+}
+
+int audiobuffer::resize(unsigned int newsize) {
+	if (newsize == buffersize) {		// Newsize = oldsize
+		return 0;						
+	}
+	if (newsize > MAX_BUFFER_SIZE) {	// Error
+		return -1;
+	}
+	if (newsize > buffersize) {			// Expand
+		for (int i = buffersize; i < newsize; i++) {
+			for (int n = 0; n < CHANNELS; n++) {
+				sample[i].channel[n] = 0;		
+			}
+		}								// Init new samples
+		buffersize = newsize;
+	}
+	if (newsize < buffersize) {			// Shrink
+		buffersize = newsize;
+	}
+	return 0;	// SUCCESS
+}

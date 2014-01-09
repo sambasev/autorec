@@ -28,19 +28,19 @@ void writeWAVData(const char* outFile, float* buf, size_t bufSize,
 	//stream.flush();
 	//Header
 	stream.write("RIFF", 4);
-	write<int>(stream, 36 + bufSize);						   //Total file size (in bytes)
+	write<int>(stream, 36 + bufSize);						   // Total file size (in bytes)
 	stream.write("WAVE", 4);
 	//Format chunk
 	stream.write("fmt ", 4);
 	write<int>(stream, 16);									   // fmt chunk size
-	write<short>(stream, 3);                                   // Format (1 = PCM)
+	write<short>(stream, 3);                                   // Format (1 = PCM) (3 = float?)
 	write<short>(stream, channels);                            // Channels
 	write<int>(stream, sampleRate);                            // Sample Rate
 	write<int>(stream, sampleRate * channels * sizeof(float)); // Byterate
 	write<short>(stream, channels * sizeof(float));            // Frame size (block align)
 	write<short>(stream, 8 * sizeof(float));                   // Bits per sample 
 	//Data chunk
-	stream.write("data", 4);								   //group-id
+	stream.write("data", 4);								   // group-id
 
 	stream.write((const char*)&bufSize, 4);					   // Data chunk-size
 	stream.write((const char*)buf, bufSize);
