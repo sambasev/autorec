@@ -105,10 +105,14 @@ void autorec::setParameter(VstInt32 index, float value){
 		}; break;
 		case kBufferLength:
 		{
-			if (value == 0) 
-				bufferLen = k5s;
-			else if (value == 1)
-				bufferLen = k10s; 
+			if (value == 0) {
+				  bufferLen = k5s;
+				  buf->resize(bufferLen*sampleRate);
+			}
+			else if (value == 1) {
+				  bufferLen = k10s;
+				  buf->resize(bufferLen*sampleRate);
+			}
 		}; break;	
 	}
 }
@@ -294,27 +298,44 @@ audiosample_t audiobuffer::getSample(unsigned int index) {
 	return sample[0];
 }
 
+//Returns the next sample (oldest)
 audiosample_t audiobuffer::getNextSample() {
+	audiosample_t oldest = sample[cursor];
 	cursor = ++cursor % buffersize;
-	return sample[cursor];
+	return oldest;
 }
 
+//cursor points to oldest sample
 int audiobuffer::resize(unsigned int newsize) {
-	if (newsize == buffersize) {		// Newsize = oldsize
+	buffersize = this->sample.size();
+	if (newsize == buffersize) {		// newsize == oldsize 
 		return 0;						
 	}
 	if (newsize > MAX_BUFFER_SIZE) {	// Error
 		return -1;
 	}
 	if (newsize > buffersize) {			// Expand
-		for (int i = buffersize; i < newsize; i++) {
-			sample[i].left = 0;	
-			sample[i].right = 0;
-		}								// Init new samples
+		vector<audiosample_t> newbuf;
+		audiosample_t temp;
+		temp.left = temp.right = 0;
+		newbuf.assign(newsize, temp);
+		int pos = cursor; 
+		int x = 0, y = 0;
+		while (pos % buffersize){		// copy oldest samples to new buffer
+			newbuf[x++] = sample[pos++];
+		}
+		while (y < cursor) {			// append the rest to new buffer
+			newbuf[x++] = sample[y++];
+		}
+		cursor = x;						// update cursor 
 		buffersize = newsize;
+		sample.swap(newbuf);			
+		return 1;
 	}
 	if (newsize < buffersize) {			// Shrink
+		sample.resize(newsize);
 		buffersize = newsize;
+		return 1;
 	}
-	return 0;	// SUCCESS
+	return 0;	
 }
