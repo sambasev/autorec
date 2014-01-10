@@ -54,8 +54,8 @@ void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleF
 			//(*out2++) = buffer[playCursor++];
 			playCursor++;
 			audiosample_t bufsample = buf->getNextSample();
-			(*out1++) = bufsample.channel[0];
-			(*out2++) = bufsample.channel[1];
+			(*out1++) = bufsample.left;
+			(*out2++) = bufsample.right;
 			//(*out1++) = (*in1++);
 			//(*out2++) = (*in2++);
 		}
@@ -68,11 +68,8 @@ void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleF
 			//buffer[cursor++] = (*in2);
 			cursor++;
 			audiosample_t fsample;
-			float temp = 0.0;
-			fsample.channel.push_back(temp);
-			fsample.channel.push_back(temp);
-			fsample.channel[0] = *in1;
-			fsample.channel[1] = *in2;
+			fsample.left = *in1;
+			fsample.right = *in2;
 			buf->insertSample(&fsample);
 			(*out1++) = (*in1++);
 			(*out2++) = (*in2++);
@@ -272,9 +269,7 @@ audiobuffer::audiobuffer(unsigned int size, unsigned int channels) {
 	cursor = 0; buffersize = MAX_BUFFER_SIZE;
 	if (size && channels && (size <= MAX_BUFFER_SIZE) && (channels <= CHANNELS)) {
 		audiosample_t temp;
-		float ftemp = 0.0;
-		temp.channel.push_back(ftemp);
-		temp.channel.push_back(ftemp);
+		temp.left = temp.right = 0;
 		sample.assign(size, temp);
 		buffersize = size;
 	}
@@ -286,8 +281,8 @@ void audiobuffer::insertSample(audiosample_t *fsample) {
 	int x = sample.size();
 	if (fsample) {
 		cursor = cursor % buffersize;			//Loop around
-		sample[cursor].channel[0] = fsample->channel[0];
-		sample[cursor].channel[1] = fsample->channel[1];
+		sample[cursor].left = fsample->left;
+		sample[cursor].right = fsample->right;
 		cursor++;
 	}
 }
@@ -313,9 +308,8 @@ int audiobuffer::resize(unsigned int newsize) {
 	}
 	if (newsize > buffersize) {			// Expand
 		for (int i = buffersize; i < newsize; i++) {
-			for (int n = 0; n < CHANNELS; n++) {
-				sample[i].channel[n] = 0;		
-			}
+			sample[i].left = 0;	
+			sample[i].right = 0;
 		}								// Init new samples
 		buffersize = newsize;
 	}

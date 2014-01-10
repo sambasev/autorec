@@ -4,7 +4,7 @@
 #include "writewav.h"
 
 #define NUM_PARAMS 2	//Update this whenever adding visible parameters
-#define MAX_REC_TIME 1 //Max record time the plugin supports (in seconds)
+#define MAX_REC_TIME 30 //Max record time the plugin supports (in seconds)
 #define CHANNELS 2		//stereo plugin
 #define SAMPLERATE 44100	//For now its fixed. Should get it from host
 #define MAX_BUFFER_SIZE MAX_REC_TIME*SAMPLERATE //Each sample goes into the buffer
@@ -68,8 +68,10 @@ private:
 
 //Each audiosample can have n channels (typically n=2)
 struct audiosample_t {
-	vector<float> channel;
-} audiosample;
+	//vector<float> channel; // horrible CPU usage
+	float left;				// vastly better
+	float right;
+};
 
 //------------------------------------------------------------------------
 // Takes in size (total numFrames), creates an audio buffer with methods:
