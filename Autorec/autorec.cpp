@@ -40,33 +40,16 @@ void autorec::processReplacing(float **inputs, float **outputs, VstInt32 sampleF
 	float* out1 = outputs[0];
 	float* out2 = outputs[1];
 	if (play) {
-		if (!done && (playCursor < cursor)) {
-			playCursor = cursor;
-			done = true;	// Refresh cursor only once else its refreshed whenever processReplacing() is called
-		}
 		while (--sampleFrames >= 0) 
 		{
-			if (playCursor >= bufsize)
-			{
-				playCursor = 0;		//Wrap around
-			}
-			//(*out1++) = buffer[playCursor++];
-			//(*out2++) = buffer[playCursor++];
-			playCursor++;
 			audiosample_t bufsample = buf->getNextSample();
 			(*out1++) = bufsample.left;
 			(*out2++) = bufsample.right;
-			//(*out1++) = (*in1++);
-			//(*out2++) = (*in2++);
 		}
 	}
 	else {
-		done = false; saved = false;		//New material has been recorded. Refresh the play cursor to reflect this state
 		while (--sampleFrames >= 0)
 		{
-			//buffer[cursor++] = (*in1);
-			//buffer[cursor++] = (*in2);
-			cursor++;
 			audiosample_t fsample;
 			fsample.left = *in1;
 			fsample.right = *in2;
@@ -270,7 +253,7 @@ int autorec::sec2samples(int seconds) {
 }
 
 audiobuffer::audiobuffer(unsigned int size, unsigned int channels) {
-	cursor = 0; buffersize = MAX_BUFFER_SIZE;
+	cursor = 0; last = 0; buffersize = MAX_BUFFER_SIZE;
 	if (size && channels && (size <= MAX_BUFFER_SIZE) && (channels <= CHANNELS)) {
 		audiosample_t temp;
 		temp.left = temp.right = 0;
@@ -284,7 +267,7 @@ audiobuffer::audiobuffer(unsigned int size, unsigned int channels) {
 void audiobuffer::insertSample(audiosample_t *fsample) {
 	int x = sample.size();
 	if (fsample) {
-		cursor = cursor % buffersize;			//Loop around
+		last = cursor = cursor % buffersize;			//Loop around
 		sample[cursor].left = fsample->left;
 		sample[cursor].right = fsample->right;
 		cursor++;
@@ -300,12 +283,13 @@ audiosample_t audiobuffer::getSample(unsigned int index) {
 
 //Returns the next sample (oldest)
 audiosample_t audiobuffer::getNextSample() {
-	audiosample_t oldest = sample[cursor];
-	cursor = ++cursor % buffersize;
-	return oldest;
+	audiosample_t nextsample = sample[last];
+	last = ++last % buffersize;
+	return nextsample;
 }
 
 //cursor points to oldest sample
+//TODO: Critical test - resize from 5s to 10s to 5s multiple times quickly (crashes)
 int audiobuffer::resize(unsigned int newsize) {
 	buffersize = this->sample.size();
 	if (newsize == buffersize) {		// newsize == oldsize 
@@ -317,17 +301,18 @@ int audiobuffer::resize(unsigned int newsize) {
 	if (newsize > buffersize) {			// Expand
 		vector<audiosample_t> newbuf;
 		audiosample_t temp;
-		temp.left = temp.right = 0;
+		memset(&temp, 0, sizeof(audiosample_t));
 		newbuf.assign(newsize, temp);
-		int pos = cursor; 
-		int x = 0, y = 0;
+		unsigned int pos = cursor; 
+		unsigned int x = 0, y = 0;
 		while (pos % buffersize){		// copy oldest samples to new buffer
 			newbuf[x++] = sample[pos++];
 		}
 		while (y < cursor) {			// append the rest to new buffer
 			newbuf[x++] = sample[y++];
 		}
-		cursor = x;						// update cursor 
+		cursor = x;						// update cursor (used to record) and last (used to play)
+		last = 0;						// oldest sample is at the start of the new buffer
 		buffersize = newsize;
 		sample.swap(newbuf);			
 		return 1;
@@ -335,8 +320,12 @@ int audiobuffer::resize(unsigned int newsize) {
 	if (newsize < buffersize) {			// Shrink
 		sample.resize(newsize);
 		buffersize = newsize;
-		cursor = cursor % buffersize; 
+		last = cursor = cursor % buffersize; 
 		return 1;
 	}
 	return 0;	
+}
+
+unsigned int audiobuffer::size() {
+	return this->buffersize;
 }

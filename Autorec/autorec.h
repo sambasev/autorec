@@ -90,8 +90,9 @@ public:
 	audiosample_t getSample(unsigned int index);
 	audiosample_t getNextSample();
 	int resize(unsigned int newsize);
+	unsigned int size();
 private:
-	unsigned int cursor;
+	unsigned int cursor, last;
 	unsigned int buffersize;
 	vector<audiosample_t> sample;
 };
