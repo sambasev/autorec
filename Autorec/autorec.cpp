@@ -335,6 +335,7 @@ int audiobuffer::resize(unsigned int newsize) {
 	if (newsize < buffersize) {			// Shrink
 		sample.resize(newsize);
 		buffersize = newsize;
+		cursor = cursor % buffersize; 
 		return 1;
 	}
 	return 0;	
