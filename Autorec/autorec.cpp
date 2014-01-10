@@ -11,18 +11,11 @@ AudioEffectX(audioMaster, 0, NUM_PARAMS) {
 	setUniqueID('arec');	// identify
 	canProcessReplacing();	// supports replacing output
 
-	//Buffer for recording
-	//buffer.assign(bufsize, 0.0);	//Init bufsize samples with 0.0
-	//bufferLen = k5s;		// Default buffer is 5 seconds
-	//playCursor = cursor = (MAX_REC_TIME - bufferLen) * sampleRate * channels;
-
 	buf = new audiobuffer(MAX_REC_TIME * sampleRate, channels);
 }
 
 autorec::~autorec() {
 	//__asm int 3;	//assembly interrupt (break when destructor is called)
-	//buffer.clear();	
-	//buffer.resize(0);  //Necessary?
 	if (buf) {
 		delete buf;
 	}
@@ -174,83 +167,12 @@ VstInt32 autorec::getVendorVersion(){
 	return 1;
 }
 
-//Reads current buffer setting (updated by host/user)
-//Updates buffer, and bufsize
-//TODO:Make it modulr - give old size and new size?
-
-//void autorec::resizeBuffer(){
-//	int oldBufsize = bufsize;
-//	int newBufsize;
-//	switch (bufferLen)
-//	{
-//		case k5s: seconds = 5; break;
-//		case k10s: seconds = 10; break;
-//	}
-//	newBufsize = sampleRate * seconds * channels;
-//	if (oldBufsize == newBufsize) return;
-//	bufsize = newBufsize;
-//	if (newBufsize > oldBufsize)			//Expand
-//	{
-//		buffer.resize(newBufsize, 0.0);	
-//		return;
-//	}
-//	if (newBufsize < oldBufsize)			//Shrink
-//	{
-//		buffer.resize(newBufsize, 0.0);
-//		if (playCursor > oldBufsize)
-//			playCursor -= oldBufsize;
-//		if (cursor > oldBufsize)
-//			cursor -= oldBufsize;
-//	}
-//}
-
-
-//Copies oldBuffer to newBuffer, modifies cursor and newBuffer.
-//void autorec::resizeBuffer(oldBuffer, newBuffer, cursor)
-
-//Buffer(largest) and manipulating cursor alone
-//enum type should take care of non-enum values during compilation
-
-// Test cases (c - cursor):
-//Grow
-//  old - c 1 2 3 4 5    // new - 1 2 3 4 5 c 0 0 0 0   
-//  old - 1 2 3 4 c 5    // new - 5 1 2 3 4 c 0 0 0 0
-//Shrink:
-//  old - 1 2 3 4 5 6 7 c 8 // new - 4 5 6 7 c
-//  old - 1 c 2 3 4 5 6 7 8 // new - 6 7 8 1 c
-
-void autorec::resizeBuffer(vector<float> buf, int *cursor, eBufferLen newlen){
-	int x, c, newcursor = 0;
-	x = c = *cursor;
-	if (bufferLen == newlen) {
-		return;
-	}
-	//Grow
-	if (newlen > bufferLen) {
-		//copy cursor to end of old buffer to start of new buffer
-		for (; x < buf.size(); x++) {
-			buf[newcursor++] = buf[x];
-		}
-		//append start to cursor to new buffer
-		for (int y = sec2samples(k10s); y < c; y++) {
-			buf[newcursor++] = buf[y];
-		}
-		//clear new buffer end and update cursor
-		for (int y = newcursor; y < buf.size(); y++) {
-			buf[y] = 0;
-		}
-		*cursor = newcursor;
-	}
-	//Shrink
-	if (newlen < bufferLen) {
-		//copy end-remaining to start of new buffer
-		//append start to cursor to end of new buffer
-	}
-}
-
 int autorec::sec2samples(int seconds) {
 	return seconds*sampleRate*channels;
 }
+
+
+// audiobuffer methods
 
 audiobuffer::audiobuffer(unsigned int size, unsigned int channels) {
 	cursor = 0; last = 0; buffersize = MAX_BUFFER_SIZE;
@@ -290,8 +212,9 @@ audiosample_t audiobuffer::getNextSample() {
 
 //cursor points to oldest sample
 //TODO: Critical test - resize from 5s to 10s to 5s multiple times quickly (crashes)
+//Specific test - PLAY set to ON, then change buffersize rapidly, then PLAY set to OFF
 int audiobuffer::resize(unsigned int newsize) {
-	buffersize = this->sample.size();
+	//buffersize = this->sample.size();
 	if (newsize == buffersize) {		// newsize == oldsize 
 		return 0;						
 	}
@@ -317,8 +240,8 @@ int audiobuffer::resize(unsigned int newsize) {
 		sample.swap(newbuf);			
 		return 1;
 	}
-	if (newsize < buffersize) {			// Shrink
-		sample.resize(newsize);
+	if (newsize < buffersize) {			// Shrink (fake)
+		//sample.resize(newsize);
 		buffersize = newsize;
 		last = cursor = cursor % buffersize; 
 		return 1;
