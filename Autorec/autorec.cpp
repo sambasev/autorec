@@ -178,7 +178,7 @@ audiobuffer::audiobuffer(unsigned int size, unsigned int channels) {
 	cursor = 0; last = 0; buffersize = MAX_BUFFER_SIZE;
 	if (size && channels && (size <= MAX_BUFFER_SIZE) && (channels <= CHANNELS)) {
 		audiosample_t temp;
-		temp.left = temp.right = 0;
+		memset(&temp, 0, sizeof(audiosample_t));
 		sample.assign(size, temp);
 		buffersize = size;
 	}
@@ -213,6 +213,7 @@ audiosample_t audiobuffer::getNextSample() {
 //cursor points to oldest sample
 //TODO: Critical test - resize from 5s to 10s to 5s multiple times quickly (crashes)
 //Specific test - PLAY set to ON, then change buffersize rapidly, then PLAY set to OFF
+// sample.resize() - A race condition ? before resizing is done and play toggling?
 int audiobuffer::resize(unsigned int newsize) {
 	//buffersize = this->sample.size();
 	if (newsize == buffersize) {		// newsize == oldsize 
@@ -226,8 +227,7 @@ int audiobuffer::resize(unsigned int newsize) {
 		audiosample_t temp;
 		memset(&temp, 0, sizeof(audiosample_t));
 		newbuf.assign(newsize, temp);
-		unsigned int pos = cursor; 
-		unsigned int x = 0, y = 0;
+		unsigned int pos = cursor, x = 0, y = 0; 
 		while (pos % buffersize){		// copy oldest samples to new buffer
 			newbuf[x++] = sample[pos++];
 		}
@@ -242,9 +242,30 @@ int audiobuffer::resize(unsigned int newsize) {
 	}
 	if (newsize < buffersize) {			// Shrink (fake)
 		//sample.resize(newsize);
-		buffersize = newsize;
-		last = cursor = cursor % buffersize; 
-		return 1;
+		if (cursor == newsize) {
+			last = cursor = 0;
+			buffersize = newsize;
+			return 1;
+		}
+		if (cursor > newsize) {
+			unsigned int diff = cursor - newsize, start =  0, x = cursor;
+			while (start < newsize) {
+				sample[start++] = sample[x++];
+			}
+			last = cursor = 0;
+			buffersize = newsize;
+			return 1;
+		}
+		if (cursor < newsize) {
+			unsigned int remaining = newsize - cursor, x = cursor;
+			unsigned int diff = buffersize - remaining; //buffersize == oldsize
+			while (x % newsize) {
+				sample[x++] = sample[diff++];
+			}
+			last = cursor;
+			buffersize = newsize;						// cursor already at oldest
+			return 1;
+		}
 	}
 	return 0;	
 }
