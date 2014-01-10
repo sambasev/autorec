@@ -124,10 +124,10 @@ float autorec::getParameter(VstInt32 index){
 		}; break;
 		case kBufferLength:
 		{
-			if (bufferLen)
-				return 1; //Temporary. param to float conversion?
+			if (bufferLen==k5s)
+				return 0; //Temporary. param to float conversion?
 			else
-				return 0;
+				return 1;
 		};  break;
 		default: 
 			return 0;
@@ -151,10 +151,10 @@ void autorec::getParameterDisplay(VstInt32 index, char* text){
 				vst_strncpy(text, "OFF", kVstMaxParamStrLen);
 		}; break; 	// Temp
 		case kBufferLength: {
-			if (bufferLen == k5s) 
-				vst_strncpy(text, "5", kVstMaxParamStrLen); 
-			else
+			if (bufferLen == k10s) 
 				vst_strncpy(text, "10", kVstMaxParamStrLen); 
+			else
+				vst_strncpy(text, "5", kVstMaxParamStrLen); 
 		}; break;
 		default:vst_strncpy(text, "Default", kVstMaxParamStrLen); break;
 	}

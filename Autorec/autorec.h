@@ -4,7 +4,7 @@
 #include "writewav.h"
 
 #define NUM_PARAMS 2	//Update this whenever adding visible parameters
-#define MAX_REC_TIME 30 //Max record time the plugin supports (in seconds)
+#define MAX_REC_TIME 10 //Max record time the plugin supports (in seconds)
 #define CHANNELS 2		//stereo plugin
 #define SAMPLERATE 44100	//For now its fixed. Should get it from host
 #define MAX_BUFFER_SIZE MAX_REC_TIME*SAMPLERATE //Each sample goes into the buffer
@@ -91,8 +91,8 @@ public:
 	audiosample_t getNextSample();
 	int resize(unsigned int newsize);
 private:
-	unsigned int cursor=0;
-	unsigned int buffersize=44100;
+	unsigned int cursor;
+	unsigned int buffersize;
 	vector<audiosample_t> sample;
 };
 
