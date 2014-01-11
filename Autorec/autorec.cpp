@@ -223,6 +223,17 @@ int audiobuffer::resize(unsigned int newsize) {
 		return -1;
 	}
 	if (newsize > buffersize) {			// Expand
+		if (sample.size() == newsize) {	//Optimization
+			unsigned int pos = cursor, x = 0, y = 0;
+			unsigned int diff = buffersize - cursor;
+			unsigned int newpos = newsize - diff;
+			while (newpos % buffersize) {
+				sample[newpos++] = sample[pos++];
+			}
+			last = cursor;			// no need to update cursor (used to record) and last (used to play)
+			buffersize = newsize;
+			return 1;
+		}
 		vector<audiosample_t> newbuf;
 		audiosample_t temp;
 		memset(&temp, 0, sizeof(audiosample_t));
