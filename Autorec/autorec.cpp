@@ -227,7 +227,7 @@ int audiobuffer::resize(unsigned int newsize) {
 			unsigned int pos = cursor, x = 0, y = 0;
 			unsigned int diff = buffersize - cursor;
 			unsigned int newpos = newsize - diff;
-			while (newpos % buffersize) {
+			while (newpos % newsize) {
 				sample[newpos++] = sample[pos++];
 			}
 			last = cursor;			// no need to update cursor (used to record) and last (used to play)
