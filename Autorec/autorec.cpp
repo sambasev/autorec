@@ -197,15 +197,12 @@ void audiobuffer::insertSample(audiosample_t *fsample) {
 }
 
 audiosample_t audiobuffer::getSample(unsigned int index) {
-	if (index < buffersize) {
-		return sample[index];
-	}
-	return sample[0];
+	return sample[index % buffersize];
 }
 
 //Returns the next sample (oldest)
 audiosample_t audiobuffer::getNextSample() {
-	audiosample_t nextsample = sample[last];
+	audiosample_t nextsample = sample[last%buffersize];
 	last = ++last % buffersize;
 	return nextsample;
 }
@@ -216,21 +213,26 @@ audiosample_t audiobuffer::getNextSample() {
 // sample.resize() - A race condition ? before resizing is done and play toggling?
 int audiobuffer::resize(unsigned int newsize) {
 	//buffersize = this->sample.size();
-	if (newsize == buffersize) {		// newsize == oldsize 
+	if (newsize == buffersize) {			// newsize == oldsize 
 		return 0;						
 	}
-	if (newsize > MAX_BUFFER_SIZE) {	// Error
+	if (newsize > MAX_BUFFER_SIZE) {		// Error
 		return -1;
 	}
-	if (newsize > buffersize) {			// Expand
-		if (sample.size() == newsize) {	//Optimization
-			unsigned int pos = cursor, x = 0, y = 0;
+	if (newsize > buffersize) {				// Expand
+		if (this->sample.size() == newsize) {		// Optimization
+			unsigned int pos = cursor, x = 0, y = buffersize;
 			unsigned int diff = buffersize - cursor;
 			unsigned int newpos = newsize - diff;
-			while (newpos % newsize) {
-				sample[newpos++] = sample[pos++];
+			audiosample_t silence;
+			silence.left = silence.right = 0;
+			while (y % newsize) {
+				sample[y++] = silence;		// init new samples
 			}
-			last = cursor;			// no need to update cursor (used to record) and last (used to play)
+			while (newpos % newsize) {
+				sample[newpos++] = sample[pos];
+				sample[pos++] = silence;
+			}
 			buffersize = newsize;
 			return 1;
 		}
@@ -260,8 +262,8 @@ int audiobuffer::resize(unsigned int newsize) {
 		}
 		if (cursor > newsize) {
 			unsigned int diff = cursor - newsize, start =  0, x = cursor;
-			while (start < newsize) {
-				sample[start++] = sample[x++];
+			while (start % newsize) {
+				sample[start++] = sample[diff++];		//bug
 			}
 			last = cursor = 0;
 			buffersize = newsize;
