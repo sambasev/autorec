@@ -1,14 +1,4 @@
-//-------------------------------------------------------------------------------------------------------
-// VST Plug-Ins SDK
-// Version 2.4		$Date: 2006/11/13 09:08:28 $
-//
-// Category     : VST 2.x SDK Samples
-// Filename     : sdeditor.h
-// Created by   : Steinberg Media Technologies
-// Description  : Simple Surround Delay plugin with Editor using VSTGUI
-//
-// © 2006, Steinberg Media Technologies, All Rights Reserved
-//-------------------------------------------------------------------------------------------------------
+// Autorec GUI/Editor
 
 #ifndef __autorecgui__
 #define __autorecgui__
