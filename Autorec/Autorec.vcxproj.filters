@@ -53,5 +53,8 @@
     <ClInclude Include="writewav.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="autorecgui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

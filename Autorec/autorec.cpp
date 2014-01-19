@@ -263,7 +263,7 @@ int audiobuffer::resize(unsigned int newsize) {
 		if (cursor > newsize) {
 			unsigned int diff = cursor - newsize, start =  0, x = cursor;
 			while (start % newsize) {
-				sample[start++] = sample[diff++];		//bug
+				sample[start++] = sample[diff++];		
 			}
 			last = cursor = 0;
 			buffersize = newsize;
@@ -271,7 +271,7 @@ int audiobuffer::resize(unsigned int newsize) {
 		}
 		if (cursor < newsize) {
 			unsigned int remaining = newsize - cursor, x = cursor;
-			unsigned int diff = buffersize - remaining; //buffersize == oldsize
+			unsigned int diff = buffersize - remaining; 
 			while (x % newsize) {
 				sample[x++] = sample[diff++];
 			}

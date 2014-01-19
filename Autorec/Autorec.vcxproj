@@ -95,6 +95,7 @@
     <ClInclude Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\audioeffect.h" />
     <ClInclude Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\audioeffectx.h" />
     <ClInclude Include="autorec.h" />
+    <ClInclude Include="autorecgui.h" />
     <ClInclude Include="writewav.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
