@@ -24,7 +24,16 @@
     <ClCompile Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\audioeffectx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="autorecgui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\vstplugmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\vstgui.sf\vstgui\aeffguieditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\vstgui.sf\vstgui\vstgui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,5 +65,13 @@
     <ClInclude Include="autorecgui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\vstgui.sf\vstgui\vstgui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\autorec.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

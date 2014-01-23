@@ -6,7 +6,7 @@
 
 // include VSTGUI
 #ifndef __vstgui__
-#include "vstgui.sf/vstgui/vstgui.h"
+#include "vstgui.h"
 #endif
 
 
@@ -17,7 +17,6 @@ public:
 	autorecgui(AudioEffect* effect);
 	virtual ~autorecgui();
 
-public:
 	virtual bool open(void* ptr);
 	virtual void close();
 

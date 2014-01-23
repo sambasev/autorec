@@ -41,6 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <SourcePath>C:\Users\samba_000\Downloads\sdk2_4\vstsdk2.4\vstgui.sf\vstgui;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -52,7 +53,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;AUTOREC_EXPORTS;WINDOWS;DEBUG=1;USE_MATH_DEFINES;_CRT_SECURE_NO_DEPRECATE;VST_FORCE_DEPRECATED=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\samba_000\Downloads\sdk2_4\vstsdk2.4;C:\Users\samba_000\Documents\Visual Studio 2013\Projects\Autorec\Autorec;C:\Users\samba_000\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\samba_000\Downloads\sdk2_4\vstsdk2.4\vstgui.sf\vstgui;C:\Users\samba_000\Downloads\sdk2_4\vstsdk2.4\pluginterfaces\vst2.x;C:\Users\samba_000\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x;C:\Users\samba_000\Documents\Visual Studio 2013\Projects\Autorec\Autorec;C:\Users\samba_000\Downloads\sdk2_4\vstsdk2.4\vstgui;C:\Users\samba_000\Downloads\sdk2_4\vstsdk2.4</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -85,7 +86,10 @@
     <ClCompile Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\audioeffect.cpp" />
     <ClCompile Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\audioeffectx.cpp" />
     <ClCompile Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\vstplugmain.cpp" />
+    <ClCompile Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\vstgui.sf\vstgui\aeffguieditor.cpp" />
+    <ClCompile Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\vstgui.sf\vstgui\vstgui.cpp" />
     <ClCompile Include="autorec.cpp" />
+    <ClCompile Include="autorecgui.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\pluginterfaces\vst2.x\aeffect.h" />
@@ -94,9 +98,13 @@
     <ClInclude Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\aeffeditor.h" />
     <ClInclude Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\audioeffect.h" />
     <ClInclude Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\public.sdk\source\vst2.x\audioeffectx.h" />
+    <ClInclude Include="..\..\..\..\..\Downloads\sdk2_4\vstsdk2.4\vstgui.sf\vstgui\vstgui.h" />
     <ClInclude Include="autorec.h" />
     <ClInclude Include="autorecgui.h" />
     <ClInclude Include="writewav.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\autorec.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
