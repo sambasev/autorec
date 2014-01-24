@@ -1,4 +1,5 @@
 #include "autorec.h"
+#include "autorecgui.h"
 
 AudioEffect* createEffectInstance(audioMasterCallback audioMaster) {
 	return new autorec(audioMaster);
@@ -12,6 +13,8 @@ AudioEffectX(audioMaster, 0, NUM_PARAMS) {
 	canProcessReplacing();	// supports replacing output
 
 	buf = new audiobuffer(MAX_REC_TIME * sampleRate, channels);
+	// create the editor (editor is the handle to this plugin's editor)
+	editor = new autorecgui(this);
 }
 
 autorec::~autorec() {
